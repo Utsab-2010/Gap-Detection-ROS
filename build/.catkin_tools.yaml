@@ -1,0 +1,6 @@
+devel_space: /home/utsab/Workspaces/Gap_analysis/devel
+install: false
+install_space: /home/utsab/Workspaces/Gap_analysis/install
+profile: default
+source_space: /home/utsab/Workspaces/Gap_analysis/src
+workspace: /home/utsab/Workspaces/Gap_analysis

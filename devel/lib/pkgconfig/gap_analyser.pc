@@ -1,0 +1,1 @@
+/home/utsab/Workspaces/Gap_analysis/devel/.private/gap_analyser/lib/pkgconfig/gap_analyser.pc
