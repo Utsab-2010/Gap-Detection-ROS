@@ -36,7 +36,7 @@ def move_model(name,x,y):
 
 
 def main_node():
-    rospy.init_node('obstacle_movement_ndoe')
+    rospy.init_node('obstacle_movement_node')
 
     # Wait for the simulation clock to start
     # rospy.wait_for_message('/clock', rospy.Time)
