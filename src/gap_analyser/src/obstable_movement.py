@@ -48,6 +48,7 @@ def main_node():
 
         move_model("cylinder_2",math.sin(time-0.5),math.cos(time))
 
+        move_model("cylinder_3",0.0,-0.5)
         rospy.loginfo(f"Current simulation time: {time}")
         rate.sleep()
 

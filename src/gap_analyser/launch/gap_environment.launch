@@ -25,5 +25,8 @@
           args="-urdf -model cylinder_1 -param cylinder_description -x 1.0 -y 0 -z 0.0" />
 
     <node pkg="gazebo_ros" type="spawn_model" name="spawn_cylinder_2" 
-          args="-urdf -model cylinder_2 -param cylinder_description -x 0 -y -0.5 -z 0.0 " />
+          args="-urdf -model cylinder_2 -param cylinder_description -x 0 -y -1.0 -z 0.0 " />
+    
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_cylinder_3" 
+          args="-urdf -model cylinder_3 -param cylinder_description -x 0 -y -0.5 -z 0.0 " />
 </launch>

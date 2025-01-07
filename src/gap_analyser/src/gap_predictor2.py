@@ -41,18 +41,10 @@ class Gap_Computation_Node:
         print(f"1st Pos: {pos[0],pos[1]}",f"2st Pos: {pos[2],pos[3]}")
 
     def lidar_callback(self,msg):
-        min_3 = msg.range_max
-        min_2 = min_1
-        min_1 = min_2
-        i_1 = 0
-        i_2 = 0
-        i_3 = 0
+        point_cloud= []
         for i,value in enumerate(msg.ranges):
-            if value <min:
-                min_2,i_2 = min_1 , i_1
-                min_1,i_1 = value,i
-            elif value < min_2 and value!=min_1:
-                min_2 , i_2 = value , i
+            if value < 100:
+                point_cloud.append((value*math.cos(i*3.14/360),value*math.sin(i*3.14/360)))
 
         pos_1 = ((min_1+self.cylinder_radius)*math.cos(i_1*3.14/360),(min_1+self.cylinder_radius)*math.sin(i_1*3.14/360))
         pos_2 = ((min_2+self.cylinder_radius)*math.cos(i_2*3.14/360),(min_2+self.cylinder_radius)*math.sin(i_2*3.14/360))
