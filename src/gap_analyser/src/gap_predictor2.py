@@ -23,9 +23,9 @@ class Gap_Computation_Node:
 
         self.timer = rospy.Timer(rospy.Duration(0.1), self.process_message) #0.1 s per iteration
 
-        self.real_gap=0
-        self.cv_model_gap=0
-        self.ca_model_gap=0
+        self.real_gap=None
+        self.cv_model_gap=None
+        self.ca_model_gap=None
 
         self.cylinder_radius=0.1
         self.pos_list = []
@@ -36,7 +36,7 @@ class Gap_Computation_Node:
     def lidar_sub_callback(self,msg):
         self.latest_lidar_msg = msg
 
-    def real_gaps(self,msg):
+    def real_gap_finder(self,msg):
     #getting actual position of the obstacles
         pos = [(),(),()]
         for i, name in enumerate(msg.name):
@@ -66,12 +66,13 @@ class Gap_Computation_Node:
         sim_time = rospy.Time.now()
 
         self.pos_list.append((pos_1,pos_2,pos_3,sim_time))
+
         if len(self.pos_list >5):
             self.pos_list.pop(0)
 
     def process_message(self):
         
-        self.real_gap(self.latest_state_msg)
+        self.real_gap_finder(self.latest_state_msg)
 
     
         
