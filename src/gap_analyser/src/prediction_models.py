@@ -25,4 +25,12 @@ def acceleration_model(pos_list,time_step):
     vel_22 = ((pos_list[-2][1][0]-pos_list[-3][1][0])/del_t2 , (pos_list[-2][1][1]-pos_list[-3][1][1])/del_t2 )
     vel_23 = ((pos_list[-2][2][0]-pos_list[-3][2][0])/del_t2 , (pos_list[-2][2][1]-pos_list[-3][2][1])/del_t2 )
 
-    acc_1 = (np.array(vel_11)-np.array(vel_21))/ 
+    acc_1 = (np.array(vel_11)-np.array(vel_21))/((del_t1+del_t2)/2)
+    acc_2 = (np.array(vel_12)-np.array(vel_22))/((del_t1+del_t2)/2)
+    acc_3 = (np.array(vel_13)-np.array(vel_23))/((del_t1+del_t2)/2)
+    
+    new_p1 = tuple(np.array(pos_list[-1][0]) + time_step*np.array(vel_11) + 0.5*np.array(acc_1)*time_step**2)
+    new_p2 = tuple(np.array(pos_list[-1][1]) + time_step*np.array(vel_12) + 0.5*np.array(acc_2)*time_step**2)
+    new_p3 = tuple(np.array(pos_list[-1][2]) + time_step*np.array(vel_13) + 0.5*np.array(acc_3)*time_step**2)
+
+    return (new_p1,new_p2,new_p3)

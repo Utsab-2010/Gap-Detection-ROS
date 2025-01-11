@@ -5,7 +5,8 @@ from gazebo_msgs.msg import ModelStates
 from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import LaserScan
 import math
-
+import numpy 
+from dbscan_clustering import Lidar_Pos
 def get_gap(pos_1,pos_2):
     return ((pos_1[0] - pos_2[0])**2+(pos_1[1]-pos_2[1])**2)**0.5
 
@@ -19,10 +20,10 @@ class Gap_Computation_Node:
         self.latest_state_msg=None
         self.lidar_sub = rospy.Subscriber('/scan',LaserScan,self.lidar_sub_callback)
         self.latest_lidar_msg=None
-        self.pub = rospy.Publisher('predicted_gaps',Float32MultiArray)
-
-        self.timer = rospy.Timer(rospy.Duration(0.1), self.process_message) #0.1 s per iteration
-
+        self.pub = rospy.Publisher('predicted_gaps',Float32MultiArray,queue_size=10)
+        print("11")
+        self.timer = rospy.Timer(rospy.Duration(2), self.process_message) #0.1 s per iteration
+        print("1333")
         self.real_gap=None
         self.cv_model_gap=None
         self.ca_model_gap=None
@@ -35,6 +36,7 @@ class Gap_Computation_Node:
     
     def lidar_sub_callback(self,msg):
         self.latest_lidar_msg = msg
+        # print(self.latest_lidar_msg)
 
     def real_gap_finder(self,msg):
     #getting actual position of the obstacles
@@ -55,24 +57,27 @@ class Gap_Computation_Node:
         # print(f"1st Pos: {pos[0],pos[1]}",f"2st Pos: {pos[2],pos[3]}")
 
     def lidar_callback(self,msg):
-        point_cloud= []
-        for i,value in enumerate(msg.ranges):
-            if value < 100:
-                point_cloud.append((value*math.cos(i*3.14/360),value*math.sin(i*3.14/360)))
+        # point_cloud= []
+        # for i,value in enumerate(msg.ranges):
+        #     if value < 100:
+        #         point_cloud.append((value*math.cos(i*3.14/360),value*math.sin(i*3.14/360)))
 
-        pos_1 = ((min_1+self.cylinder_radius)*math.cos(i_1*3.14/360),(min_1+self.cylinder_radius)*math.sin(i_1*3.14/360))
-        pos_2 = ((min_2+self.cylinder_radius)*math.cos(i_2*3.14/360),(min_2+self.cylinder_radius)*math.sin(i_2*3.14/360))
+        # pos_1 = ((min_1+self.cylinder_radius)*math.cos(i_1*3.14/360),(min_1+self.cylinder_radius)*math.sin(i_1*3.14/360))
+        # pos_2 = ((min_2+self.cylinder_radius)*math.cos(i_2*3.14/360),(min_2+self.cylinder_radius)*math.sin(i_2*3.14/360))
         
-        sim_time = rospy.Time.now()
+        # sim_time = rospy.Time.now()
 
-        self.pos_list.append((pos_1,pos_2,pos_3,sim_time))
+        # self.pos_list.append((pos_1,pos_2,pos_3,sim_time))
 
-        if len(self.pos_list >5):
-            self.pos_list.pop(0)
+        # if len(self.pos_list >5):
+        #     self.pos_list.pop(0)
 
-    def process_message(self):
+        func = Lidar_Pos(msg.ranges,self.cylinder_radius)
+
+    def process_message(self,event):
         
         self.real_gap_finder(self.latest_state_msg)
+        self.lidar_callback(self.latest_lidar_msg)
 
     
         
