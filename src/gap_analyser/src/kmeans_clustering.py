@@ -2,7 +2,7 @@ import numpy as np
 
 class Lidar_Pos:
     def __init__(self,lidar_data,radius):
-        self.radius = 0
+        self.radius = radius
         self.lidar_data = np.array(lidar_data)
         self.finite_data = self.lidar_data[np.isfinite(self.lidar_data)]
         # print(self.finite_data)
@@ -53,8 +53,8 @@ class Lidar_Pos:
             #     cluster to determine the new centroid)
             new_centroids = [self.calculate_centroid(cluster) for cluster in clusters]
             new_centroids = np.array(new_centroids)
-            print("Centroids:",np.round(centroids,2))
-            print("New Centroids:",np.round(new_centroids,2))
+            # print("Centroids:",np.round(centroids,2))
+            # print("New Centroids:",np.round(new_centroids,2))
             
             if np.array_equal(centroids,new_centroids):
                 converged=True

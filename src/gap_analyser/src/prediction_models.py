@@ -33,4 +33,4 @@ def acceleration_model(pos_list,time_step):
     new_p2 = tuple(np.array(pos_list[-1][1]) + time_step*np.array(vel_12) + 0.5*np.array(acc_2)*time_step**2)
     new_p3 = tuple(np.array(pos_list[-1][2]) + time_step*np.array(vel_13) + 0.5*np.array(acc_3)*time_step**2)
 
-    return (new_p1,new_p2,new_p3)
+    return [new_p1,new_p2,new_p3]

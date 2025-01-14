@@ -59,31 +59,22 @@ class Gap_Computation_Node:
         
         print(f"Real coordinates: {pos[0],pos[1],pos[2]}")
 
+    
     def lidar_callback(self,msg):
-        # point_cloud= []
-        # for i,value in enumerate(msg.ranges):
-        #     if value < 100:
-        #         point_cloud.append((value*math.cos(i*3.14/360),value*math.sin(i*3.14/360)))
-
-        # pos_1 = ((min_1+self.cylinder_radius)*math.cos(i_1*3.14/360),(min_1+self.cylinder_radius)*math.sin(i_1*3.14/360))
-        # pos_2 = ((min_2+self.cylinder_radius)*math.cos(i_2*3.14/360),(min_2+self.cylinder_radius)*math.sin(i_2*3.14/360))
-        
-        # sim_time = rospy.Time.now()
-
-        # self.pos_list.append((pos_1,pos_2,pos_3,sim_time))
-
-        # if len(self.pos_list >5):
-        #     self.pos_list.pop(0)
 
         func = Lidar_Pos(msg.ranges,self.cylinder_radius)
         pos_estimates = func.pos_estimate(3)
+        pos_estimates = sorted(pos_estimates, key=lambda point: (point[0]**2 + point[1]**2)**0.5, reverse=True)
         print("Predicted Coordinates:",pos_estimates)
-
+        return pos_estimates
     def process_message(self,event):
         
         self.real_gap_finder(self.latest_state_msg)
-        self.lidar_callback(self.latest_lidar_msg)
-
+        try:
+            pos_estimates = self.lidar_callback(self.latest_lidar_msg)
+        except:
+            pass
+        # self.pos_list.append(self.real)
     
         
     def run(self):
