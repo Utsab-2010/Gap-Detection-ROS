@@ -20,6 +20,10 @@ def move_model(name,x,y):
         model_state.pose.position.x = x    # Desired x position
         model_state.pose.position.y = y    # Desired y position
         model_state.pose.position.z = 0.0   # Desired z position
+        model_state.pose.orientation.x=0.0
+        model_state.pose.orientation.y=0.0
+        model_state.pose.orientation.z=0.0
+        model_state.pose.orientation.w=0.0
 
         model_state.reference_frame = "world"  # Frame of reference
 
@@ -49,6 +53,8 @@ def main_node():
         move_model("cylinder_2",math.sin(time-0.5),math.cos(time))
 
         move_model("cylinder_3",0.0,-0.5)
+
+        move_model("turtlebot3_burger",0.0,0.0)
         rospy.loginfo(f"Current simulation time: {time}")
         rate.sleep()
 

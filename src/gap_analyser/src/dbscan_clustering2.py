@@ -5,11 +5,17 @@ class Lidar_Pos:
         self.radius = radius
         self.lidar_data = np.array(lidar_data)
         self.finite_data = self.lidar_data[np.isfinite(self.lidar_data)]
+        # print(self.finite_data)
+        
         self.finite_indices = np.where(np.isfinite(self.lidar_data))[0]
-        self.x = (self.radius+self.finite_data)*np.cos(self.finite_indices*3.14/360)
-        self.y = (self.radius+self.finite_data)*np.sin(self.finite_indices*3.14/360)
+        # print(self.finite_indices)
+        self.x = (self.radius+self.finite_data)*np.cos(self.finite_indices*3.14/180)
+        self.y = (self.radius+self.finite_data)*np.sin(self.finite_indices*3.14/180)
         self.points = np.column_stack((self.x,self.y))
-        print(self.points)
+        
+
+
+        # print(self.points)
         
     def euclidean_distance(self,point1, point2):
         """Calculate Euclidean distance between two points."""
@@ -23,38 +29,39 @@ class Lidar_Pos:
                 neighbors.append(idx)
         return neighbors
 
-    def expand_cluster(self,data, labels, point_idx, cluster_id, epsilon, min_pts):
-        """Expand the cluster recursively."""
-        neighbors = self.region_query(data, point_idx, epsilon)
-        if len(neighbors) < min_pts:
-            labels[point_idx] = -1  # Mark as noise
-            return False
-        else:
-            labels[point_idx] = cluster_id
-            i = 0
-            while i < len(neighbors):
-                neighbor_idx = neighbors[i]
-                if labels[neighbor_idx] == 0:  # Unvisited point
-                    labels[neighbor_idx] = cluster_id
-                    new_neighbors = self.region_query(data, neighbor_idx, epsilon)
-                    if len(new_neighbors) >= min_pts:
-                        neighbors += new_neighbors
-                elif labels[neighbor_idx] == -1:  # Previously labeled as noise
-                    labels[neighbor_idx] = cluster_id
-                i += 1
-            return True
-
 
     def dbscan(self,data, epsilon, min_pts):
         """Main DBSCAN algorithm."""
-        labels = np.zeros(len(data))  # Initialize all points as unvisited (label 0)
+        labels = np.full(len(data),None,dtype=object)  # Initialize all points as unvisited (label 0)
         cluster_id = 0
         
         for point_idx in range(len(data)):
-            if labels[point_idx] != 0:  # Skip already visited points
+            if labels[point_idx] != None:  # Skip already visited points
                 continue
-            if self.expand_cluster(data, labels, point_idx, cluster_id + 1, epsilon, min_pts):
-                cluster_id += 1  # Start a new cluster
+
+            neighbours = self.region_query(data,point_idx,epsilon)
+
+            if len(neighbours) < min_pts:
+                labels[point_idx]=-1
+                continue
+
+            cluster_id+=1
+
+            # print(neighbours)
+            seed_set = neighbours
+            seed_set.remove(point_idx)
+            # print(seed_set)
+
+            for s_indx in seed_set:
+                if labels[s_indx]==-1:
+                    labels[s_indx]=cluster_id
+                if labels[s_indx]!=None:
+                    continue
+                labels[s_indx]=cluster_id
+                s_neighbours = self.region_query(data,s_indx,epsilon)
+                if len(s_neighbours)>=min_pts:
+                    seed_set.extend(s_neighbours)
+                    seed_set = list(dict.fromkeys(seed_set))
         
         return labels
     
@@ -65,9 +72,9 @@ class Lidar_Pos:
         grp_2 = self.points[np.where(labels==2)]
         grp_3 = self.points[np.where(labels==3)]
 
-        p1 = (np.mean(grp_1[:,0]),np.mean(grp_1[:,1]))
-        p2 = (np.mean(grp_2[:,0]),np.mean(grp_2[:,1]))
-        p3 = (np.mean(grp_3[:,0]),np.mean(grp_3[:,1]))
+        p1 = (np.mean(grp_1[:,0]),np.mean(grp_1[:1]))
+        p2 = (np.mean(grp_2[:,0]),np.mean(grp_2[:1]))
+        p3 = (np.mean(grp_3[:,0]),np.mean(grp_3[:1]))
 
         return (p1,p2,p3)
 

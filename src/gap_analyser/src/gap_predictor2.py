@@ -6,7 +6,9 @@ from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import LaserScan
 import math
 import numpy 
-from dbscan_clustering import Lidar_Pos
+# from dbscan_clustering2 import Lidar_Pos
+from kmeans_clustering import Lidar_Pos
+
 def get_gap(pos_1,pos_2):
     return ((pos_1[0] - pos_2[0])**2+(pos_1[1]-pos_2[1])**2)**0.5
 
@@ -21,9 +23,9 @@ class Gap_Computation_Node:
         self.lidar_sub = rospy.Subscriber('/scan',LaserScan,self.lidar_sub_callback)
         self.latest_lidar_msg=None
         self.pub = rospy.Publisher('predicted_gaps',Float32MultiArray,queue_size=10)
-        print("11")
-        self.timer = rospy.Timer(rospy.Duration(2), self.process_message) #0.1 s per iteration
-        print("1333")
+        # print("11")
+        self.timer = rospy.Timer(rospy.Duration(0.5), self.process_message) #0.1 s per iteration
+        # print("1333")
         self.real_gap=None
         self.cv_model_gap=None
         self.ca_model_gap=None
@@ -50,11 +52,12 @@ class Gap_Computation_Node:
             if name == "cylinder_3":
                 pos[2] = (msg.pose[i].position.x,msg.pose[i].position.y)   
 
+
         self.real_gap = (get_gap(pos[0],pos[1]),
                          get_gap(pos[1],pos[2]),
                          get_gap(pos[2],pos[0]))
         
-        # print(f"1st Pos: {pos[0],pos[1]}",f"2st Pos: {pos[2],pos[3]}")
+        print(f"Real coordinates: {pos[0],pos[1],pos[2]}")
 
     def lidar_callback(self,msg):
         # point_cloud= []
@@ -73,6 +76,8 @@ class Gap_Computation_Node:
         #     self.pos_list.pop(0)
 
         func = Lidar_Pos(msg.ranges,self.cylinder_radius)
+        pos_estimates = func.pos_estimate(3)
+        print("Predicted Coordinates:",pos_estimates)
 
     def process_message(self,event):
         
