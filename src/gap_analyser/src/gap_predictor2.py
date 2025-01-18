@@ -6,8 +6,10 @@ from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import LaserScan
 import math
 import numpy 
+import random   
 # from dbscan_clustering2 import Lidar_Pos
-from kmeans_clustering import Lidar_Pos
+# from kmeans_clustering import Lidar_Pos
+from gap_finder import Lidar_Pos
 
 def get_gap(pos_1,pos_2):
     return ((pos_1[0] - pos_2[0])**2+(pos_1[1]-pos_2[1])**2)**0.5
@@ -63,18 +65,24 @@ class Gap_Computation_Node:
     def lidar_callback(self,msg):
 
         func = Lidar_Pos(msg.ranges,self.cylinder_radius)
-        pos_estimates = func.pos_estimate(3)
-        pos_estimates = sorted(pos_estimates, key=lambda point: (point[0]**2 + point[1]**2)**0.5, reverse=True)
-        print("Predicted Coordinates:",pos_estimates)
-        return pos_estimates
+        print(func.edge_grps)
+        print('hi')
+        # pos_estimates = func.pos_estimate(3)
+        # pos_estimates = sorted(pos_estimates, key=lambda point: (point[0]**2 + point[1]**2)**0.5, reverse=True)
+        # print("Predicted Coordinates:",pos_estimates)
+        # return pos_estimates
+        return 1
     def process_message(self,event):
-        
+        msg= Float32MultiArray()
         self.real_gap_finder(self.latest_state_msg)
-        try:
-            pos_estimates = self.lidar_callback(self.latest_lidar_msg)
-        except:
-            pass
+        # try:
+        pos_estimates = self.lidar_callback(self.latest_lidar_msg)
+        # except:
+        #     pass
         # self.pos_list.append(self.real)
+        i = random.randint(0,20)
+        msg.data = [1.1+i, 2.2, 3.3]
+        self.pub.publish(msg)
     
         
     def run(self):
