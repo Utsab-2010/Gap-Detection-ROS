@@ -8,11 +8,11 @@ def velocity_model(pos_list,time_step):
     vel_3 = ((pos_list[-1][2][0]-pos_list[-2][2][0])/del_t , (pos_list[-1][2][1]-pos_list[-2][2][1])/del_t )
 
 
-    new_p1 = tuple(np.array(pos_list[-1][0]) + time_step*np.array(vel_1))
-    new_p2 = tuple(np.array(pos_list[-1][1]) + time_step*np.array(vel_2))
-    new_p3 = tuple(np.array(pos_list[-1][2]) + time_step*np.array(vel_3))
+    del_p1 = time_step*np.array(vel_1)
+    del_p2 = time_step*np.array(vel_2)
+    del_p3 = time_step*np.array(vel_3)
 
-    return (new_p1,new_p2,new_p3)
+    return (del_p1,del_p2,del_p3)
 
 def acceleration_model(pos_list,time_step):
     del_t1 = pos_list[-1][-1]- pos_list[-2][-1]
@@ -29,8 +29,8 @@ def acceleration_model(pos_list,time_step):
     acc_2 = (np.array(vel_12)-np.array(vel_22))/((del_t1+del_t2)/2)
     acc_3 = (np.array(vel_13)-np.array(vel_23))/((del_t1+del_t2)/2)
     
-    new_p1 = tuple(np.array(pos_list[-1][0]) + time_step*np.array(vel_11) + 0.5*np.array(acc_1)*time_step**2)
-    new_p2 = tuple(np.array(pos_list[-1][1]) + time_step*np.array(vel_12) + 0.5*np.array(acc_2)*time_step**2)
-    new_p3 = tuple(np.array(pos_list[-1][2]) + time_step*np.array(vel_13) + 0.5*np.array(acc_3)*time_step**2)
+    del_p1 = time_step*np.array(vel_11) + 0.5*np.array(acc_1)*time_step**2
+    del_p2 = time_step*np.array(vel_12) + 0.5*np.array(acc_2)*time_step**2
+    del_p3 = time_step*np.array(vel_13) + 0.5*np.array(acc_3)*time_step**2
 
-    return [new_p1,new_p2,new_p3]
+    return (del_p1,del_p2,del_p3)
