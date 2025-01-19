@@ -65,8 +65,7 @@ class Gap_Computation_Node:
     def lidar_callback(self,msg):
 
         func = Lidar_Pos(msg.ranges,self.cylinder_radius)
-        print(func.edge_grps)
-        print('hi')
+        
         # pos_estimates = func.pos_estimate(3)
         # pos_estimates = sorted(pos_estimates, key=lambda point: (point[0]**2 + point[1]**2)**0.5, reverse=True)
         # print("Predicted Coordinates:",pos_estimates)
