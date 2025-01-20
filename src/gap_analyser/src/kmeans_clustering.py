@@ -81,7 +81,7 @@ class Lidar_Pos:
         p1 = np.mean(np.array(groups[0])[:,0]),np.mean(np.array(groups[0])[:,1])
         p2 = np.mean(np.array(groups[1])[:,0]),np.mean(np.array(groups[1])[:,1])
         p3 = np.mean(np.array(groups[2])[:,0]),np.mean(np.array(groups[2])[:,1])
-        pos_estimates = (p1,p2,p3)
+        pos_estimates = [p1,p2,p3]
         pos_estimates = sorted(pos_estimates, key=lambda point: (point[0]**2 + point[1]**2)**0.5, reverse=True)
 
         return pos_estimates

@@ -10,6 +10,7 @@ import random
 # from dbscan_clustering2 import Lidar_Pos
 from kmeans_clustering import Lidar_Pos
 from gap_finder import Lidar_gaps
+from prediction_models import velocity_model,acceleration_model
 
 def get_gap(pos_1,pos_2):
     return ((pos_1[0] - pos_2[0])**2+(pos_1[1]-pos_2[1])**2)**0.5
@@ -20,7 +21,7 @@ class Gap_Computation_Node:
     def __init__(self):
         rospy.init_node('gap_predictor_node')
 
-        self.time_step =0.5
+        self.time_step =0.2
 
         self.state_sub = rospy.Subscriber('/gazebo/model_states',ModelStates,self.state_sub_callback)
         self.latest_state_msg=None
@@ -69,7 +70,8 @@ class Gap_Computation_Node:
         print("Real Gaps:",self.real_gap)
     
     def lidar_callback(self,msg):
-
+        time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)
+        N=5
         gap_object = Lidar_gaps(msg.ranges,self.cylinder_radius)
         # edge_grps = func.arrange_data()
         print("Gaps from Lidar:",gap_object.gaps)
@@ -77,23 +79,30 @@ class Gap_Computation_Node:
         pos_object = Lidar_Pos(msg.ranges,self.cylinder_radius)
 
         pos_estimates = pos_object.pos_estimate(3)
+        pos_estimates.append(time)
 
+        self.pos_list.append(pos_estimates)
+        if len(self.pos_list)>N+3:
+            self.pos_list.pop(0)
+            print(velocity_model(self.pos_list,self.time_step,N))
+            print(acceleration_model(self.pos_list,self.time_step,N))
 
         print("Predicted Coordinates:",pos_estimates)
-        # return pos_estimates
-        # return 1
+
     def process_message(self,event):
         msg= Float32MultiArray()
         self.real_gap_finder(self.latest_state_msg)
         # try:
-        pos_estimates = self.lidar_callback(self.latest_lidar_msg)
+        self.lidar_callback(self.latest_lidar_msg)
         
         i = random.randint(0,20)
         msg.data = [1.1+i, 2.2, 3.3]
         self.pub.publish(msg)
+        print("XX=====================================XX")
     
         
     def run(self):
+        
         rospy.spin()
 
     

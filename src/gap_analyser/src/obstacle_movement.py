@@ -47,7 +47,7 @@ def main_node():
     # print("hi")
     rate = rospy.Rate(50)  # 1 Hz
     while not rospy.is_shutdown():
-        time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)/2  #simulation time in secs
+        time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)/3  #simulation time in secs
         move_model("cylinder_1",2*math.sin(0.5-time),2*math.cos(time))
 
         move_model("cylinder_2",math.sin(time-0.5),math.cos(time))
