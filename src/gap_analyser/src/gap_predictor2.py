@@ -31,7 +31,7 @@ class Gap_Computation_Node:
         self.cylinder_radius=0.1
         self.pos_list = []
         self.edge_point_list=[]
-        self.time_step =0.2
+        self.time_step =0.8
 
         # Initializing Subscribers
         self.state_sub = rospy.Subscriber('/gazebo/model_states',ModelStates,self.state_sub_callback)
