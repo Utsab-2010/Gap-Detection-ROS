@@ -30,12 +30,15 @@ class Lidar_gaps:
         """Calculate Euclidean distance between two points."""
         return np.sqrt(np.sum((point1 - point2) ** 2))
     
-    def get_gaps(self):
+    def get_gaps(self,edge_grps=None):
         # print("hi")
+        if not(edge_grps):
+            edge_grps = self.edge_grps
+
         gaps=[None,None,None]
-        gaps[0] = self.euclidean_distance(self.edge_grps[0][1],self.edge_grps[1][0])
-        gaps[1] = self.euclidean_distance(self.edge_grps[1][1],self.edge_grps[2][0])
-        gaps[2] = self.euclidean_distance(self.edge_grps[2][1],self.edge_grps[0][0])
+        gaps[0] = self.euclidean_distance(edge_grps[0][1],edge_grps[1][0])
+        gaps[1] = self.euclidean_distance(edge_grps[1][1],edge_grps[2][0])
+        gaps[2] = self.euclidean_distance(edge_grps[2][1],edge_grps[0][0])
         # print()
         return gaps
 

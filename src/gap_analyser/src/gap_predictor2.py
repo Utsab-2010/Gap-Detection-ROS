@@ -21,25 +21,36 @@ class Gap_Computation_Node:
     def __init__(self):
         rospy.init_node('gap_predictor_node')
 
+        # Some useful variables
+        self.real_gaps=None
+        self.cv_model_gaps=None
+        self.ca_model_gaps=None
+        self.lidar_gaps=None
+        
+        self.cylinder_radius=0.1
+        self.pos_list = []
+        self.edge_point_list=[]
         self.time_step =0.2
 
+        # Initializing Subscribers
         self.state_sub = rospy.Subscriber('/gazebo/model_states',ModelStates,self.state_sub_callback)
         self.latest_state_msg=None
         self.lidar_sub = rospy.Subscriber('/scan',LaserScan,self.lidar_sub_callback)
         self.latest_lidar_msg=None
-        self.pub = rospy.Publisher('predicted_gaps',Float32MultiArray,queue_size=10)
-        # print("11")
-        self.timer = rospy.Timer(rospy.Duration(self.time_step), self.process_message) #0.1 s per iteration
-        # print("1333")
-        self.real_gap=None
-        self.cv_model_gap=None
-        self.ca_model_gap=None
 
-        self.cylinder_radius=0.1
-        self.pos_list = []
+        # Initialising publishers
+        self.vel_pub = rospy.Publisher('predicted_gaps_velocity_model',Float32MultiArray,queue_size=10)
+        self.acc_pub = rospy.Publisher('predicted_gaps_velocity_model',Float32MultiArray,queue_size=10)
+        self.real_pub = rospy.Publisher('real_gaps',Float32MultiArray,queue_size=10)
+        self.lidar_pub = rospy.Publisher('lidar_gaps',Float32MultiArray,queue_size=10)
+
+        # Timer which make the node take 'time-step" secs for each iteration
+        self.timer = rospy.Timer(rospy.Duration(self.time_step), self.process_message) 
+
+        
     
     def euclidean_distance(self,point1, point2):
-        """Calculate Euclidean distance between two points."""
+        # Calculate Euclidean distance between two points.
         return np.sqrt(np.sum((point1 - point2) ** 2))
     
     def state_sub_callback(self,msg):
@@ -51,6 +62,9 @@ class Gap_Computation_Node:
 
     def real_gap_finder(self,msg):
     #getting actual position of the obstacles
+        time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)
+
+        
         pos = [(),(),()]
         for i, name in enumerate(msg.name):
             if name == "cylinder_1":  # Replace with your model's name
@@ -62,16 +76,17 @@ class Gap_Computation_Node:
                 pos[2] = np.array([msg.pose[i].position.x,msg.pose[i].position.y])   
 
 
-        self.real_gap = np.array([self.euclidean_distance(pos[0],pos[1]),
+        self.real_gaps = list(np.array([self.euclidean_distance(pos[0],pos[1]),
                                   self.euclidean_distance(pos[1],pos[2]),
-                                  self.euclidean_distance(pos[2],pos[0])]) - 2*self.cylinder_radius
-        
+                                  self.euclidean_distance(pos[2],pos[0])]) - 2*self.cylinder_radius)
+        self.real_gaps.append(time)
+
         print(f"Real coordinates: {pos[0],pos[1],pos[2]}")
-        print("Real Gaps:",self.real_gap)
+        print("Real Gaps:",self.real_gaps)
     
     def lidar_callback(self,msg):
         time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)
-        N=5
+        N=2
         gap_object = Lidar_gaps(msg.ranges,self.cylinder_radius)
         # edge_grps = func.arrange_data()
         print("Gaps from Lidar:",gap_object.gaps)
@@ -82,24 +97,37 @@ class Gap_Computation_Node:
         pos_estimates.append(time)
 
         self.pos_list.append(pos_estimates)
+        self.edge_point_list.append(gap_object.edge_grps)
         if len(self.pos_list)>N+3:
             self.pos_list.pop(0)
-            print(velocity_model(self.pos_list,self.time_step,N))
-            print(acceleration_model(self.pos_list,self.time_step,N))
+            self.cv_model_gaps = gap_object.get_gaps(velocity_model(self.pos_list,self.edge_point_list,self.time_step,N))
+            self.ca_model_gaps = gap_object.get_gaps(acceleration_model(self.pos_list,self.edge_point_list,self.time_step,N))
+            self.cv_model_gaps.append(time)
+            self.ca_model_gaps.append(time)
+            
+            print("Velocity Model:",self.cv_model_gaps)
+            print("Acceleraiton Model:",self.ca_model_gaps)
 
         print("Predicted Coordinates:",pos_estimates)
 
     def process_message(self,event):
-        msg= Float32MultiArray()
-        self.real_gap_finder(self.latest_state_msg)
-        # try:
-        self.lidar_callback(self.latest_lidar_msg)
         
-        i = random.randint(0,20)
-        msg.data = [1.1+i, 2.2, 3.3]
-        self.pub.publish(msg)
+        self.real_gap_finder(self.latest_state_msg)
+        try:
+            self.lidar_callback(self.latest_lidar_msg)
+        except:
+            pass
+        
+        
+        # i = random.randint(0,20)
+        # msg.data = [1.1+i, 2.2, 3.3]
+        # self.pub.publish(msg)
         print("XX=====================================XX")
     
+    def publish_data(self):
+        cv_model_gaps= Float32MultiArray()
+        ca_model_gaps= Float32MultiArray()
+
         
     def run(self):
         

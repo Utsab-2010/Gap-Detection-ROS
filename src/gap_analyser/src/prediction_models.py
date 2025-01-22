@@ -1,7 +1,8 @@
 import math 
 import numpy as np
 
-def velocity_model(pos_list,time_step,N):
+def velocity_model(pos_list,edge_point_list,time_step,N):
+    # N=N-1
     time = time_step*N
     del_t = pos_list[-1-N][-1]- pos_list[-2-N][-1]
     # del_t = time_step
@@ -14,9 +15,16 @@ def velocity_model(pos_list,time_step,N):
     del_p2 = time*np.array(vel_2)
     del_p3 = time*np.array(vel_3)
 
-    return (del_p1,del_p2,del_p3)
+    predicted_points = [None,None,None]
+    predicted_points[0] = edge_point_list[-1-N][0]+ del_p1
+    predicted_points[1] = edge_point_list[-1-N][1]+ del_p2
+    predicted_points[2] = edge_point_list[-1-N][2]+ del_p3
 
-def acceleration_model(pos_list,time_step,N):
+    # print(predicted_points)
+    return predicted_points
+
+def acceleration_model(pos_list,edge_point_list,time_step,N):
+    # N=N-1
     time = time_step*N
     del_t1 = pos_list[-1-N][-1]- pos_list[-2-N][-1]
     # print("delt1:",del_t1)
@@ -39,4 +47,9 @@ def acceleration_model(pos_list,time_step,N):
     del_p2 = time*np.array(vel_12) + 0.5*np.array(acc_2)*time**2
     del_p3 = time*np.array(vel_13) + 0.5*np.array(acc_3)*time**2
 
-    return (del_p1,del_p2,del_p3)
+    predicted_points = [None,None,None]
+    predicted_points[0] = edge_point_list[-1-N][0]+ del_p1
+    predicted_points[1] = edge_point_list[-1-N][1]+ del_p2
+    predicted_points[2] = edge_point_list[-1-N][2]+ del_p3
+
+    return predicted_points
