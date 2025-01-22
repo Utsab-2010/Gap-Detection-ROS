@@ -3,6 +3,7 @@
 import rospy
 from gazebo_msgs.msg import ModelStates
 from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 import math
 import numpy as np
@@ -39,11 +40,12 @@ class Gap_Computation_Node:
         self.latest_lidar_msg=None
 
         # Initialising publishers
-        self.vel_pub = rospy.Publisher('predicted_gaps_velocity_model',Float32MultiArray,queue_size=10)
-        self.acc_pub = rospy.Publisher('predicted_gaps_velocity_model',Float32MultiArray,queue_size=10)
-        self.real_pub = rospy.Publisher('real_gaps',Float32MultiArray,queue_size=10)
-        self.lidar_pub = rospy.Publisher('lidar_gaps',Float32MultiArray,queue_size=10)
-
+        self.vel_pub = rospy.Publisher('gap_prediction/predicted_gaps_cv_model',Float32MultiArray,queue_size=10)
+        self.acc_pub = rospy.Publisher('gap_prediction/predicted_gaps_ca_model',Float32MultiArray,queue_size=10)
+        self.real_pub = rospy.Publisher('gap_prediction/real_gaps',Float32MultiArray,queue_size=10)
+        self.lidar_pub = rospy.Publisher('gap_prediction/lidar_gaps',Float32MultiArray,queue_size=10)
+        # self.pub = rospy.Publisher('simple_string_topic', String, queue_size=10)  # Create a publisher
+        
         # Timer which make the node take 'time-step" secs for each iteration
         self.timer = rospy.Timer(rospy.Duration(self.time_step), self.process_message) 
 
@@ -89,6 +91,7 @@ class Gap_Computation_Node:
         N=2
         gap_object = Lidar_gaps(msg.ranges,self.cylinder_radius)
         # edge_grps = func.arrange_data()
+        self.lidar_gaps = gap_object.gaps
         print("Gaps from Lidar:",gap_object.gaps)
 
         pos_object = Lidar_Pos(msg.ranges,self.cylinder_radius)
@@ -115,6 +118,8 @@ class Gap_Computation_Node:
         self.real_gap_finder(self.latest_state_msg)
         try:
             self.lidar_callback(self.latest_lidar_msg)
+            
+            self.publish_data()
         except:
             pass
         
@@ -125,8 +130,24 @@ class Gap_Computation_Node:
         print("XX=====================================XX")
     
     def publish_data(self):
+        print("doing")
         cv_model_gaps= Float32MultiArray()
         ca_model_gaps= Float32MultiArray()
+        lidar_gaps = Float32MultiArray()
+        real_gaps = Float32MultiArray()
+
+
+        cv_model_gaps.data = self.cv_model_gaps
+        ca_model_gaps.data = self.ca_model_gaps
+        lidar_gaps.data = self.lidar_gaps
+        real_gaps.data =self.real_gaps
+       
+
+        self.vel_pub.publish(cv_model_gaps)
+        self.acc_pub.publish(ca_model_gaps)
+        self.lidar_pub.publish(lidar_gaps)
+        self.real_pub.publish(real_gaps)
+
 
         
     def run(self):
