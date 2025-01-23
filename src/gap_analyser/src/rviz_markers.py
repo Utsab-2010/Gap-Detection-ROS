@@ -3,7 +3,6 @@
 import rospy
 from visualization_msgs.msg import Marker,MarkerArray
 from std_msgs.msg import Header
-from geometry_msgs.msg import Point
 from std_msgs.msg import Float32MultiArray
 # from functools import partial
 
@@ -11,11 +10,7 @@ from std_msgs.msg import Float32MultiArray
 class Rviz_marker_node:
     def __init__(self):
         rospy.init_node("marker_visualizer", anonymous=False)
-        # print((rospy.Time.now().secs + rospy.Time.now().nsecs/1e9))
-        # self.markers=[[[],[],[]],
-        #               [[],[],[]],
-        #               [[],[],[]],
-        #               [[],[],[]]]
+
         self.marker_array = MarkerArray()
         self.flag=0
         self.id_counter=[0,0,0,0]
@@ -24,16 +19,16 @@ class Rviz_marker_node:
         self.time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)
         # print(self.time)/
         # Subscribe to the topic you want to read data from
-        rospy.Subscriber("gap_prediction/predicted_gaps_cv_model", Float32MultiArray, lambda msg: self.topic_callback(msg, "cv_model_gaps",0))
-        rospy.Subscriber("gap_prediction/predicted_gaps_ca_model", Float32MultiArray, lambda msg: self.topic_callback(msg, "ca_model_gaps",1))
-        rospy.Subscriber("gap_prediction/real_gaps", Float32MultiArray, lambda msg: self.topic_callback(msg, "real_gaps",2))
-        rospy.Subscriber("gap_prediction/lidar_gaps", Float32MultiArray, lambda msg: self.topic_callback(msg, "lidar_gaps",3))
+        rospy.Subscriber("gap_prediction/predicted_gaps_cv_model", Float32MultiArray, lambda msg: self.topic_callback(msg, "cv_model_gaps",0,(1,0,0)))
+        rospy.Subscriber("gap_prediction/predicted_gaps_ca_model", Float32MultiArray, lambda msg: self.topic_callback(msg, "ca_model_gaps",1,(0,1,0)))
+        rospy.Subscriber("gap_prediction/real_gaps", Float32MultiArray, lambda msg: self.topic_callback(msg, "real_gaps",2,(0,0,1)))
+        rospy.Subscriber("gap_prediction/lidar_gaps", Float32MultiArray, lambda msg: self.topic_callback(msg, "lidar_gaps",3,(1,1,0)))
         # rospy.Subscriber("gap_prediction/real_gaps",Float32MultiArray,self.test_callback)
 
-    # def test_callback(self,msg):
+    # def test_callback(self,msg):msg.data[sub_idx]*0.3
     #     print("hello")
 
-    def create_marker(self,msg,namespace,sub_idx,idx):
+    def create_marker(self,msg,namespace,sub_idx,idx,color):
         
         # Create a marker
         marker = Marker()
@@ -55,16 +50,16 @@ class Rviz_marker_node:
         marker.id = self.id_counter[idx]
         print(marker.ns,marker.id)
         # Set the type of marker (e.g., SPHERE, LINE_STRIP, etc.)
-        marker.type = Marker.CYLINDER  # Change to Marker.LINE_STRIP or others if needed
+        marker.type = Marker.CUBE  # Change to Marker.LINE_STRIP or others if needed
 
         # Set the action for the marker (add, modify, delete)
         marker.action = Marker.ADD
 
         # Set the pose of the marker
-        marker.pose.position.x = (msg.data[-1]-self.time)
+        marker.pose.position.x = -5+(msg.data[-1]-self.time)
         print(marker.pose.position)# Assume `data` has attributes x, y, z
         marker.pose.position.y = 5-idx*3 -sub_idx
-        marker.pose.position.z = 0
+        marker.pose.position.z = msg.data[sub_idx]*0.3/2
         marker.pose.orientation.x = 0.0
         marker.pose.orientation.y = 0.0
         marker.pose.orientation.z = 0.0
@@ -76,9 +71,9 @@ class Rviz_marker_node:
         marker.scale.z = msg.data[sub_idx]*0.3# Scale along the z-axis
 
         # Set the color (RGBA)
-        marker.color.r = 1.0
-        marker.color.g = 0.0
-        marker.color.b = 0.0
+        marker.color.r = color[0]*(sub_idx+1)/3
+        marker.color.g = color[1]*(sub_idx+1)/3
+        marker.color.b = color[2]*(sub_idx+1)/3
         marker.color.a = 1.0  # Transparency (1.0 is fully opaque)
 
         # Set the lifetime of the marker (0 means forever)
@@ -95,16 +90,17 @@ class Rviz_marker_node:
         self.marker_pub.publish(self.marker_array)
 
 
-    def topic_callback(self,msg,namespace,idx):
+    def topic_callback(self,msg,namespace,idx,color):
         if not(self.flag):
             self.time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)
             # print("time",self.time)
             self.flag+=1
         
         # print('hi')
-        self.create_marker(msg,namespace,0,idx)
-        self.create_marker(msg,namespace,1,idx)
-        self.create_marker(msg,namespace,2,idx)
+        
+        self.create_marker(msg,namespace,0,idx,color)
+        self.create_marker(msg,namespace,1,idx,color)
+        self.create_marker(msg,namespace,2,idx,color)
         self.id_counter[idx]+=1
 
     def run(self):

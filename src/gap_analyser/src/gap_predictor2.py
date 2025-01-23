@@ -31,7 +31,7 @@ class Gap_Computation_Node:
         self.cylinder_radius=0.1
         self.pos_list = []
         self.edge_point_list=[]
-        self.time_step =0.8
+        self.time_step =0.2
 
         # Initializing Subscribers
         self.state_sub = rospy.Subscriber('/gazebo/model_states',ModelStates,self.state_sub_callback)
@@ -88,10 +88,9 @@ class Gap_Computation_Node:
     
     def lidar_callback(self,msg):
         time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)
-        N=2
+        N=5
         gap_object = Lidar_gaps(msg.ranges,self.cylinder_radius)
-        # edge_grps = func.arrange_data()
-        self.lidar_gaps = gap_object.gaps
+        self.lidar_gaps = gap_object.gaps + [time]
         print("Gaps from Lidar:",gap_object.gaps)
 
         pos_object = Lidar_Pos(msg.ranges,self.cylinder_radius)
@@ -101,8 +100,10 @@ class Gap_Computation_Node:
 
         self.pos_list.append(pos_estimates)
         self.edge_point_list.append(gap_object.edge_grps)
-        if len(self.pos_list)>N+3:
+
+        if len(self.pos_list)>N+3 and len(self.edge_point_list)>N+3:
             self.pos_list.pop(0)
+            self.edge_point_list.pop(0)
             self.cv_model_gaps = gap_object.get_gaps(velocity_model(self.pos_list,self.edge_point_list,self.time_step,N))
             self.ca_model_gaps = gap_object.get_gaps(acceleration_model(self.pos_list,self.edge_point_list,self.time_step,N))
             self.cv_model_gaps.append(time)
@@ -118,19 +119,15 @@ class Gap_Computation_Node:
         self.real_gap_finder(self.latest_state_msg)
         try:
             self.lidar_callback(self.latest_lidar_msg)
-            
             self.publish_data()
         except:
-            pass
+            print("Object Overlap Occured!!")
         
-        
-        # i = random.randint(0,20)
-        # msg.data = [1.1+i, 2.2, 3.3]
-        # self.pub.publish(msg)
-        print("XX=====================================XX")
+        print('''
+              X==========ONE=====TIME=====STEP=============XX
+              ''')
     
     def publish_data(self):
-        print("doing")
         cv_model_gaps= Float32MultiArray()
         ca_model_gaps= Float32MultiArray()
         lidar_gaps = Float32MultiArray()

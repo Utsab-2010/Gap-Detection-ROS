@@ -43,7 +43,7 @@ class Lidar_gaps:
         return gaps
 
     def arrange_data(self,data):
-        print(self.euclidean_distance(data[0],data[-1]))
+        # print(self.euclidean_distance(data[0],data[-1]))
         if self.euclidean_distance(data[0],data[-1]) <= 2.4*self.radius:
         # Move the first element to the back
             # print("rearranged")
@@ -64,6 +64,6 @@ class Lidar_gaps:
         for rank,i in enumerate(ranks):
             grp_arr[rank] = np.array(data[2*i:2*i+2])
             
-        print("grped edges",grp_arr)
+        # print("grped edges",grp_arr)
         # print("XX==========================XX")
         return grp_arr
