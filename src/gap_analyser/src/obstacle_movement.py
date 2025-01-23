@@ -41,13 +41,13 @@ def move_model(name,x,y):
 
 def main_node():
     rospy.init_node('obstacle_movement_node')
-
+    speed=rospy.get_param("object_speed",0.5)
     # Wait for the simulation clock to start
     # rospy.wait_for_message('/clock', rospy.Time)
     # print("hi")
     rate = rospy.Rate(50)  # 1 Hz
     while not rospy.is_shutdown():
-        time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)/3  #simulation time in secs
+        time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)*speed  #simulation time in secs
         move_model("cylinder_1",2*math.sin(0.5-time),2*math.cos(time))
 
         move_model("cylinder_2",math.sin(time-0.5),math.cos(time))
