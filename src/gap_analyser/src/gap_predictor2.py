@@ -5,9 +5,7 @@ from gazebo_msgs.msg import ModelStates
 from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
-import math
 import numpy as np
-import random   
 # from dbscan_clustering2 import Lidar_Pos
 from kmeans_clustering import Lidar_Pos
 from gap_finder import Lidar_gaps
@@ -31,7 +29,7 @@ class Gap_Computation_Node:
         self.cylinder_radius=0.1
         self.pos_list = []
         self.edge_point_list=[]
-        self.time_step =0.2
+        self.time_step =0.3
 
         # Initializing Subscribers
         self.state_sub = rospy.Subscriber('/gazebo/model_states',ModelStates,self.state_sub_callback)
@@ -87,33 +85,50 @@ class Gap_Computation_Node:
         print("Real Gaps:",self.real_gaps)
     
     def lidar_callback(self,msg):
+        # if not(msg.ranges):
+        #     return
         time = (rospy.Time.now().secs + rospy.Time.now().nsecs/1e9)
         N=5
-        gap_object = Lidar_gaps(msg.ranges,self.cylinder_radius)
-        self.lidar_gaps = gap_object.gaps + [time]
-        print("Gaps from Lidar:",gap_object.gaps)
+        # print(msg.ranges)
 
         pos_object = Lidar_Pos(msg.ranges,self.cylinder_radius)
 
-        pos_estimates = pos_object.pos_estimate(3)
-        pos_estimates.append(time)
+        gap_object = Lidar_gaps(msg.ranges,self.cylinder_radius)
+        self.lidar_gaps = gap_object.gaps + [time]
+        print("Gaps from Lidar:",gap_object.gaps)
+       
 
+        pos_estimates = gap_object.pos_estimate()
+        pos_estimates.append(time)
+        print("Predicted Coordinates:",pos_estimates)
+
+        error=0
+        if len(self.pos_list)>1:
+            delta = (np.array(pos_estimates[:3]) - np.array(self.pos_list[-1][:3]))
+            print(delta)
+            error = [x**2 + y**2 for x, y in delta]
+            
+            if error[0]>1 or error[1]> 1 or error[2]>1:
+                print(error)
+                return
+        
+        
+        
         self.pos_list.append(pos_estimates)
         self.edge_point_list.append(gap_object.edge_grps)
 
         if len(self.pos_list)>N+3 and len(self.edge_point_list)>N+3:
             self.pos_list.pop(0)
             self.edge_point_list.pop(0)
-            self.cv_model_gaps = gap_object.get_gaps(velocity_model(self.pos_list,self.edge_point_list,self.time_step,N))
-            self.ca_model_gaps = gap_object.get_gaps(acceleration_model(self.pos_list,self.edge_point_list,self.time_step,N))
+            self.cv_model_gaps = gap_object.get_gaps(velocity_model(self.pos_list,self.edge_point_list,time,N))
+            self.ca_model_gaps = gap_object.get_gaps(acceleration_model(self.pos_list,self.edge_point_list,time,N))
             self.cv_model_gaps.append(time)
             self.ca_model_gaps.append(time)
             
             print("Velocity Model:",self.cv_model_gaps)
             print("Acceleraiton Model:",self.ca_model_gaps)
 
-        print("Predicted Coordinates:",pos_estimates)
-
+        
     def process_message(self,event):
         
         self.real_gap_finder(self.latest_state_msg)

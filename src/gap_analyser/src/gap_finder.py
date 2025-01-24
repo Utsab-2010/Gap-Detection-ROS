@@ -22,7 +22,7 @@ class Lidar_gaps:
 
         # Grouping the corner points in to 3 groups in order 
         self.edge_grps = self.arrange_data(self.edge_points)
-
+        # print(self.edge_grps)
         self.gaps=self.get_gaps()
         
 
@@ -67,3 +67,10 @@ class Lidar_gaps:
         # print("grped edges",grp_arr)
         # print("XX==========================XX")
         return grp_arr
+    
+    def pos_estimate(self):
+        position = [None,None,None]
+        for i in range(3):
+            position[i] =(self.edge_grps[i][0]+self.edge_grps[i][1])/2
+
+        return position

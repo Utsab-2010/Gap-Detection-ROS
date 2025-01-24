@@ -2,7 +2,7 @@ import numpy as np
 
 class Lidar_Pos:
     def __init__(self,lidar_data,radius):
-        self.radius = radius
+        self.radius = radius*1.5
         self.lidar_data = np.array(lidar_data)
         self.finite_data = self.lidar_data[np.isfinite(self.lidar_data)]
         

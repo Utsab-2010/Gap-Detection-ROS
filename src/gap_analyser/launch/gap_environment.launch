@@ -33,8 +33,8 @@
           args="-urdf -model cylinder_3 -param cylinder_description -x 0 -y -0.5 -z 0.0 " />
 
       <!--obstacle movement node-->
-      <arg name="object_speed" default="$(env object_speed)"/>
-      <node pkg="gap_analyser" type="obstacle_movement.py" name="obs_node">
+      <arg name="object_speed" default="$(env OBJECT_SPEED)"/>
+      <node pkg="gap_analyser" type="obstacle_movement.py" name="obstacle_movement_node">
             <param name="object_speed" value="$(arg object_speed)"/>
       </node>
       
